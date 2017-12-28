@@ -13,6 +13,13 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * SiteParser is reading a list of sites and put the words in a map that present the word and the amount of appearance 
+ * It use Callable to return the results in the end of the job
+ * 
+ * @author snir
+ *
+ */
 public class SiteParser implements Callable<Map<String, Integer>> {
 	
 	private Map<String, Integer> wordMap;
@@ -21,6 +28,11 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 	private List<String> urlList;
 	private boolean isRunningTrad = true;
 	
+	
+	/**
+	 * 
+	 * @param urlList
+	 */
 	public SiteParser(List<String> urlList) {
 		this.urlList = urlList;
 		this.wordMap = new HashMap<String, Integer>();
@@ -28,6 +40,9 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 	}
 	
 
+	/**
+	 * Running list of threads and return the result in the end
+	 */
 	public Map<String, Integer> call() throws Exception {
 		for(final String url : urlList) {
 			new Thread(){
@@ -42,17 +57,24 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 			}.start();
 		}
 		
-		
+		//waiting to all thread to finish their job
 		while(isRunningTrad)
 			Thread.sleep(50);
 		return wordMap;
 		
 	}
 	
+	/**
+	 * Mark the isRunningTrad flag to false to end waiting and return the results
+	 */
 	public void endAll() {
 		this.isRunningTrad = false;
 	}
 	
+	/**
+	 * Read the asite content from the specifed url and pars it to map 
+	 * @param url
+	 */
 	public void parsUrl(String url) {
 		try {
 			URL oracle = new URL(url);
@@ -63,8 +85,10 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 				StringTokenizer st = new StringTokenizer(inputLine, " ");
 				while (st.hasMoreTokens()) {
 					String tmp = st.nextToken().toLowerCase().trim();
-					if(hasSpecialCharacters(tmp))
+					//if the word is invalid it will continue to the next word
+					if(isInvalidWord(tmp))
 						continue;
+					//lock the words map
 					synchronized(wordMap) {
 						if (wordMap.containsKey(tmp)) {
 							wordMap.put(tmp, wordMap.get(tmp) + 1);
@@ -82,6 +106,7 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 			e.printStackTrace();
 		}finally {
 			thradEnded++;
+			//check if it is the last thread    
 			if(thradEnded == thradAmount)
 				isRunningTrad  = false;
 			
@@ -89,8 +114,13 @@ public class SiteParser implements Callable<Map<String, Integer>> {
 		
 	}
 
-	
-	private boolean hasSpecialCharacters(String word) {
+	/**
+	 * check if the word is valid and not contain special characters and numbers
+	 * TODO check prepositions 
+	 * @param word
+	 * @return
+	 */
+	private boolean isInvalidWord(String word) {
 		if(word.length() < 3)
 			return true;
 		

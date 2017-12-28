@@ -10,11 +10,18 @@ import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A CommonWords represents the result of a list of words that most common in a list of sites. 
+ * @author snir
+ *
+ */
 public class CommonWords {
 
 	
 	/**
-	 * 
+	 * Return a list of words that most common in the specified url List. 
+	 * the size of the list will be as the specified amount.
+	 * this method is use callbeck and it will return the result after SiteParser will finish to run.
 	 * @param amountOfWords 
 	 * @param urls
 	 * @param amount
